@@ -1,16 +1,29 @@
+* {
+    font-family: "Noto Sans KR", sans-serif;
+}
+
 body {
     margin: 0;
     width: 100vw;
     height: 100dvh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 5px;
 }
 
 p {
     font-size: 2rem;
-    font-family: 'sans-serif';
     font-weight: 500;
     margin: 0;
-    padding: 0;
+}
+
+.instagram {
+    font-size: 1.2rem;
+    color: gray;
+}
+
+img {
+    width: 50vw;
 }
