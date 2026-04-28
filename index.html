@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <script src="https://kit.fontawesome.com/c6b6ed360e.js" crossorigin="anonymous"></script>
+    <script></script>
+    <title>Cloud</title>
+    <style>
+        body {
+            font-family: "Pretendard", sans-serif;
+            margin: 0;
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            background-color: rgb(248, 248, 248);
+        }
+
+        .loading {
+            width: 100vw;
+            height: 100dvh;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(20px, 1vw, 25px);
+        }
+
+        .app {
+            padding: 7vw 10vw;
+            width: 100%;
+            height: calc(100dvh - 14vw);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        header {
+            width: 100%;
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(20px, 2vw, 30px);
+            font-weight: 600;
+        }
+
+        .title span {
+            font-weight: 300;
+        }
+
+        .container {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        .area {
+            flex: 1;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 0 4px 0 rgba(128, 128, 128, 0.319);
+        }
+
+        .uploadArea {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #fileInput {
+            width: 300px;
+            height: 60px;
+        }
+
+        #customBtn {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(16px, 1vw, 18px);
+            border-radius: 10px;
+            border: 1px solid rgb(224, 224, 224);
+            color: rgb(188, 188, 188);
+        }
+
+        .btn {
+            width: 100%;
+            height: 50px;
+            min-height: 50px;
+            border: none;
+            background-color: rgb(255, 255, 255);
+            color: black;
+            border-radius: 10px;
+            box-shadow: 0 0 4px 0 rgba(128, 128, 128, 0.319);
+            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background-color: black;
+            color: white;
+            transition-duration: 0.3s;
+        }
+
+        .textArea {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            gap: 20px;
+        }
+
+        .code {
+            flex: 1;
+            outline: none;
+            border: none;
+            resize: none;
+        }
+
+        .loadArea {
+            height: 100%;
+            padding: 0 10px 0 30px;
+        }
+
+        #lists {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 30px;
+            overflow-y: auto;
+        }
+
+        #lists .listContainer:first-child {
+            margin-top: 30px;
+        }
+
+        #lists .listContainer:last-child {
+            margin-bottom: 30px;
+        }
+
+        .listContainer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .listContainer p {
+            margin: 0;
+            font-size: clamp(16px, 0.9vw, 18px);
+            color: rgb(83, 83, 83);
+        }
+
+        .listContainer img {
+            width: 5vh;
+            height: 5vh;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid rgb(240, 240, 240);
+        }
+
+        .listContainer i {
+            font-size: 2vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">업로드...</div>
+    <div class="app">
+        <header>
+            <p class="title">imdongwook.<span>kim</span></p>
+        </header>
+        <div class="container">
+            <div class="uploadArea area">
+                <input type="file" id="fileInput" hidden>
+                <label for="fileInput" id="customBtn">클릭해서 파일 선택</label>
+                <button class="btn" onclick="upload()">업로드</button>
+            </div>
+
+            <div class="textArea area">
+                <textarea type="text" class="code" id="code"></textarea>
+                <button class="btn" onclick="uploadCode()">변경</button>
+            </div>
+
+            <div class="loadArea area">
+                <div id="lists"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = "https://jbcdnkvrzzeuvasmlrzg.supabase.co"
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpiY2Rua3ZyenpldXZhc21scnpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MDYwNzEsImV4cCI6MjA5MTI4MjA3MX0.0DXxQ7h7ybqJlVS8fWvWAnZ5aAaI0D5OpzLQLCNuO7Q"
+
+        const client = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+        const input = document.getElementById("fileInput")
+        input.addEventListener("change", () => {
+            const file = input.files[0]
+
+            if (file) {
+                document.getElementById("customBtn").innerText = file.name
+                document.getElementById("customBtn").style.color = "black";
+            } else {
+                document.getElementById("customBtn").innerText = "파일 선택"
+                document.getElementById("customBtn").style.color = "rgb(188, 188, 188)";
+            }
+        })
+
+        async function upload() {
+            const file = document.getElementById("fileInput").files[0]
+            if (!file) { return }
+
+            showLoading()
+
+            const fileName = Date.now() + "_" + file.name
+
+            const { error } = await client.storage
+                .from("files")
+                .upload(`uploads/${fileName}`, file, {
+                    upsert: false
+                })
+
+            if (error) {
+                console.log(error)
+                alert("failed")
+                return
+            }
+            hideLoading()
+
+            alert("업로드 성공")
+            loadFiles()
+        }
+
+        function showLoading() {
+            document.getElementById("loading").style.display = "flex"
+        }
+
+        function hideLoading() {
+            document.getElementById("loading").style.display = "none"
+        }
+
+        async function loadFiles() {
+            const { data, error } = await client.storage
+                .from("files")
+                .list("uploads")
+
+                data.sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                )
+
+            const lists = document.getElementById("lists")
+            lists.innerHTML = ""
+
+            data.forEach(file => {
+                const div = document.createElement("div")
+                div.className = "listContainer"
+
+                const p = document.createElement("p")
+                const temp = file.name.toString().slice(14)
+                p.innerText = (temp.length > 15) ? temp.slice(0, 15) + "..." : temp
+
+                const ext = file.name.split('.').pop().toLowerCase()
+                const isImage = ["png", "jpg", "jpeg", "gif", "webp"].includes(ext)
+
+                const { data: urlData } = client.storage
+                        .from("files")
+                        .getPublicUrl(`uploads/${file.name}`, {
+                            download: file.name
+                        })
+
+                if (isImage) {
+                    const img = document.createElement("img")
+
+                    img.src = urlData.publicUrl
+
+                    div.appendChild(img)
+                } else {
+                    const img = document.createElement("i")
+                    img.className = "fa-regular fa-file"
+                    
+                    div.appendChild(img)
+                }
+
+                p.onclick = () => {
+                    window.open(urlData.publicUrl)
+                }
+
+                div.appendChild(p)
+
+                lists.appendChild(div)
+            })
+        }
+
+
+        async function loadCode() {
+            const { data, error } = await client
+                .from("text")
+                .select("content")
+                .single();
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            document.getElementById("code").value = data.content || '';
+        }
+
+        async function uploadCode() {
+            const text = document.getElementById("code").value
+
+            const { data, error } = await client
+                .from("text")
+                .update({content: text})
+                .eq('id', 1)
+
+            if (error) {
+                console.error(error)
+            }
+
+            alert("업데이트 완료")
+
+            loadCode()
+        }
+
+        loadFiles()
+        loadCode()
+    </script>
+</body>
+</html>
