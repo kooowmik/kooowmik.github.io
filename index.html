@@ -180,6 +180,66 @@
         .listContainer i {
             font-size: 2vh;
         }
+
+        @media (max-width: 1100px) {
+            .app {
+                padding: 7vw 30px;
+            }
+
+            .listContainer img {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                height: auto;
+            }
+
+            .app {
+                height: auto;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .area {
+                flex: none;
+                padding: 15px;
+                gap: 15px;
+            }
+
+            #lists .listContainer:first-child {
+                margin-top: 15px;
+            }
+
+            #lists .listContainer:last-child {
+                margin-bottom: 15px;
+            }
+
+            .textArea {
+                height: 50vh;
+            }
+
+            .textArea i {
+                margin: 0;
+            }
+
+            .uploadArea {
+                height: 20vh;
+            }
+
+            .loadArea {
+                height: 50vh;
+                padding: 0 15px;
+            }
+
+            .btn {
+                height: 50px;
+            }
+        }
     </style>
 </head>
 <body>
